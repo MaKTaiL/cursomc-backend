@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import com.matheusc.cursomc.domain.ItemPedido;
 import com.matheusc.cursomc.domain.PagamentoComBoleto;
 import com.matheusc.cursomc.domain.Pedido;
-import com.matheusc.cursomc.domain.Produto;
 import com.matheusc.cursomc.domain.enums.EstadoPagamento;
 import com.matheusc.cursomc.repositories.ItemPedidoRepository;
 import com.matheusc.cursomc.repositories.PagamentoRepository;
@@ -34,6 +33,9 @@ public class PedidoService {
 	@Autowired
 	private ItemPedidoRepository itemPedidoRepository;
 	
+	@Autowired
+	private ClienteService clienteService;
+	
 	public Pedido find(Integer id) {
 		Optional<Pedido> obj = repo.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
@@ -43,6 +45,7 @@ public class PedidoService {
 	public Pedido insert(Pedido obj) {
 		obj.setId(null);
 		obj.setInstante(new Date());
+		obj.setCliente(clienteService.find(obj.getCliente().getId()));
 		obj.getPagamento().setEstado(EstadoPagamento.PENDENTE);
 		obj.getPagamento().setPedido(obj);
 		if(obj.getPagamento() instanceof PagamentoComBoleto) {
@@ -54,13 +57,13 @@ public class PedidoService {
 		
 		for(ItemPedido ip : obj.getProdutos()) {
 			ip.setDesconto(0.0);
-			
-			Produto p = produtoService.find(ip.getProduto().getId());
-			ip.setPreco(p.getPreco());
+			ip.setProduto(produtoService.find(ip.getProduto().getId()));
+			ip.setPreco(ip.getProduto().getPreco());
 			ip.setPedido(obj);
 		}
 		
 		itemPedidoRepository.saveAll(obj.getProdutos());
+		System.out.println(obj);
 		return obj;
 	}
 }
