@@ -15,12 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import com.matheusc.cursomc.domain.Cidade;
 import com.matheusc.cursomc.domain.Cliente;
 import com.matheusc.cursomc.domain.Endereco;
+import com.matheusc.cursomc.domain.enums.Perfil;
 import com.matheusc.cursomc.domain.enums.TipoCliente;
 import com.matheusc.cursomc.dto.ClienteDTO;
 import com.matheusc.cursomc.dto.ClienteNewDTO;
 import com.matheusc.cursomc.repositories.CidadeRepository;
 import com.matheusc.cursomc.repositories.ClienteRepository;
 import com.matheusc.cursomc.repositories.EnderecoRepository;
+import com.matheusc.cursomc.security.UserSS;
+import com.matheusc.cursomc.services.exceptions.AuthorizationException;
 import com.matheusc.cursomc.services.exceptions.DataIntegrityException;
 import com.matheusc.cursomc.services.exceptions.ObjectNotFoundException;
 
@@ -38,6 +41,11 @@ public class ClienteService {
 	private EnderecoRepository enderecoRepository;
 	
 	public Cliente find(Integer id) {
+		UserSS user = UserService.authenticated();
+		if(user==null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
 		Optional<Cliente> obj = clienteRepository.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
 				"Objeto não encontrado! Id: " + id + ", Tipo: " + Cliente.class.getName()));
