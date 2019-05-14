@@ -81,7 +81,7 @@ public class CategoriaService {
 		return new Categoria(objDto.getId(), objDto.getNome());
 	}
 	
-	public URI uploadCategoriaPicture(MultipartFile multipartFile, int catId) {
+	public URI uploadCategoriaPicture(MultipartFile multipartFile, Integer catId) {
 		UserSS user = UserService.authenticated();
 		if(user == null || !user.hasRole(Perfil.ADMIN)) {
 			throw new AuthorizationException("Acesso negado");

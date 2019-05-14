@@ -56,7 +56,7 @@ public class ProdutoService {
 		return produtoRepository.findDistinctByNomeContainingAndCategoriasIn(nome, categorias, pageRequest);
 	}
 	
-	public URI uploadProdutoPicture(MultipartFile multipartFile, int prodId) {
+	public URI uploadProdutoPicture(MultipartFile multipartFile, Integer prodId) {
 		UserSS user = UserService.authenticated();
 		if(user == null || !user.hasRole(Perfil.ADMIN)) {
 			throw new AuthorizationException("Acesso negado");
