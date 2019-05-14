@@ -1,18 +1,25 @@
 package com.matheusc.cursomc.services;
 
+import java.awt.image.BufferedImage;
+import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.matheusc.cursomc.domain.Categoria;
+import com.matheusc.cursomc.domain.enums.Perfil;
 import com.matheusc.cursomc.dto.CategoriaDTO;
 import com.matheusc.cursomc.repositories.CategoriaRepository;
+import com.matheusc.cursomc.security.UserSS;
+import com.matheusc.cursomc.services.exceptions.AuthorizationException;
 import com.matheusc.cursomc.services.exceptions.DataIntegrityException;
 import com.matheusc.cursomc.services.exceptions.ObjectNotFoundException;
 
@@ -21,6 +28,18 @@ public class CategoriaService {
 	
 	@Autowired
 	private CategoriaRepository repo;
+	
+	@Autowired
+	private ImageService imageService;
+	
+	@Autowired
+	private S3Service s3Service;
+	
+	@Value("${img.prefix.categoria}")
+	private String prefix;
+	
+	@Value("${img.profile.size}")
+	private int size;
 	
 	public Categoria find(Integer id) {
 		Optional<Categoria> obj = repo.findById(id);
@@ -60,5 +79,19 @@ public class CategoriaService {
 	
 	public Categoria fromDTO(CategoriaDTO objDto) {
 		return new Categoria(objDto.getId(), objDto.getNome());
+	}
+	
+	public URI uploadCategoriaPicture(MultipartFile multipartFile, int catId) {
+		UserSS user = UserService.authenticated();
+		if(user == null || !user.hasRole(Perfil.ADMIN)) {
+			throw new AuthorizationException("Acesso negado");
+		}
+		
+		BufferedImage jpgImage = imageService.getJpgImageFromFile(multipartFile);
+		jpgImage = imageService.cropSquare(jpgImage);
+		jpgImage = imageService.rezise(jpgImage, size);
+		String fileName = prefix + catId + ".jpg";
+
+		return s3Service.uploadFile(imageService.getInputStream(jpgImage, "jpg"), fileName, "image");
 	}
 }

@@ -1,5 +1,7 @@
 package com.matheusc.cursomc.resources;
 
+import java.net.URI;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.matheusc.cursomc.domain.Produto;
 import com.matheusc.cursomc.dto.ProdutoDTO;
@@ -38,5 +41,11 @@ public class ProdutoResource {
 		Page<Produto> list = service.search(URL.decodeParam(nome), URL.decodeIntList(categorias), page, linesPerPage, orderBy, direction);
 		Page<ProdutoDTO> listDto = list.map(obj -> new ProdutoDTO(obj));
 		return ResponseEntity.ok().body(listDto);
+	}
+	
+	@RequestMapping(value="/{id}", method=RequestMethod.POST)
+	public ResponseEntity<Void> uploadProdutoPicture(@RequestParam(name="file") MultipartFile multipartFile, @PathVariable Integer id) {
+		URI uri = service.uploadProdutoPicture(multipartFile, id);
+		return ResponseEntity.created(uri).build();
 	}
 }

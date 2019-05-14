@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.matheusc.cursomc.domain.Categoria;
@@ -77,5 +78,11 @@ public class CategoriaResource {
 		Page<Categoria> list = service.findPage(page, linesPerPage, orderBy, direction);
 		Page<CategoriaDTO> listDto = list.map(obj -> new CategoriaDTO(obj));
 		return ResponseEntity.ok().body(listDto);
+	}
+	
+	@RequestMapping(value="/{id}", method=RequestMethod.POST)
+	public ResponseEntity<Void> uploadProdutoPicture(@RequestParam(name="file") MultipartFile multipartFile, @PathVariable Integer id) {
+		URI uri = service.uploadCategoriaPicture(multipartFile, id);
+		return ResponseEntity.created(uri).build();
 	}
 }
