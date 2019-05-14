@@ -79,8 +79,14 @@ public class ClienteService {
 	}
 	
 	public void delete(Integer id) {
-		find(id);
-		
+		Cliente cli = find(id);
+		UserSS user = UserService.authenticated();
+		if(user.getId().equals(id)) {
+			throw new DataIntegrityException("Não é possível excluir o próprio perfil");
+		}
+		else if (cli.getPerfis().contains(Perfil.ADMIN)) {
+			throw new DataIntegrityException("Não é possível excluir o perfil de outro admin");
+		}
 		try {
 			clienteRepository.deleteById(id);
 		}
